@@ -7,7 +7,7 @@ import type { CapacitorConfig } from '@capacitor/cli'
  * webDir 指向预构建好的 www（本仓库只放构建产物，不含业务源码）。
  */
 const config: CapacitorConfig = {
-  appId: 'com.cd-rail.zhct',
+  // Capacitor 校验要求「Java 包名」格式，连字符非法；\n  // 真实 bundle id（com.cd-rail.zhct）在 CI 里 sed 覆盖 Xcode 工程后再生效\n  appId: 'com.cdrail.zhct',
   appName: '中信金融',
   webDir: 'www',
 
