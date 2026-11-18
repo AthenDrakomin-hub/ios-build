@@ -23,9 +23,17 @@ jobs:
           npx cap add ios
           npx cap sync ios
           PBX=ios/App/App.xcodeproj/project.pbxproj
+          PROFILE_NAME="${{ secrets.IOS_PROFILE_NAME }}"
+
           sed -i '' "s/PRODUCT_BUNDLE_IDENTIFIER = [^;]*;/PRODUCT_BUNDLE_IDENTIFIER = ${BUNDLE_ID};/g" "$PBX"
           sed -i '' "s/DEVELOPMENT_TEAM = [^;]*;/DEVELOPMENT_TEAM = ${TEAM_ID};/g" "$PBX"
-          echo "bundle id 出现次数：$(grep -c "PRODUCT_BUNDLE_IDENTIFIER = ${BUNDLE_ID}" "$PBX" || true)"
+
+          # 只给 App 主 target 注入签名设置；不能走 xcodebuild 命令行，
+          # 否则 Pods 里的动态库 target 也会被要求提供描述文件而报错
+          perl -0pi -e 's/(PRODUCT_BUNDLE_IDENTIFIER = [^;]+;)/$1\n\t\t\t\tPROVISIONING_PROFILE_SPECIFIER = "'"${PROFILE_NAME}"'";\n\t\t\t\tCODE_SIGN_STYLE = Manual;\n\t\t\t\tCODE_SIGN_IDENTITY = "iPhone Distribution";/g' "$PBX"
+
+          echo "bundle id 命中：$(grep -c "PRODUCT_BUNDLE_IDENTIFIER = ${BUNDLE_ID}" "$PBX" || true)"
+          echo "profile 命中：$(grep -c "PROVISIONING_PROFILE_SPECIFIER" "$PBX" || true)"
 
       - name: CocoaPods
         working-directory: ios/App
@@ -68,16 +76,11 @@ jobs:
           PROFILE_NAME: ${{ secrets.IOS_PROFILE_NAME }}
         run: |
           set -euo pipefail
+          # 签名参数已在 pbxproj 里按 target 配置好，这里不要再传，否则影响 Pods target
           xcodebuild -workspace App.xcworkspace -scheme App \
             -configuration Release \
             -archivePath "$RUNNER_TEMP/App.xcarchive" \
             -destination "generic/platform=iOS" \
-            DEVELOPMENT_TEAM="$TEAM_ID" \
-            PRODUCT_BUNDLE_IDENTIFIER="$BUNDLE_ID" \
-            CODE_SIGN_STYLE=Manual \
-            CODE_SIGN_IDENTITY="iPhone Distribution" \
-            PROVISIONING_PROFILE_SPECIFIER="$PROFILE_NAME" \
-            CODE_SIGNING_REQUIRED=YES \
             archive
 
       - name: 导出企业 IPA
