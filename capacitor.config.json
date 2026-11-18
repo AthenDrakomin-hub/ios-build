@@ -1,0 +1,13 @@
+﻿{
+  "appId": "com.cdrail.zhct",
+  "appName": "中信金融",
+  "webDir": "www",
+  "server": { "iosScheme": "https" },
+  "ios": { "contentInset": "always" },
+  "plugins": {
+    "SplashScreen": { "launchShowDuration": 1200, "backgroundColor": "#C8102E", "showSpinner": false },
+    "StatusBar": { "style": "LIGHT", "backgroundColor": "#C8102E", "overlaysWebView": false },
+    "Keyboard": { "resize": "body", "style": "LIGHT", "resizeOnFullScreen": true },
+    "Camera": { "webUseInput": true }
+  }
+}
